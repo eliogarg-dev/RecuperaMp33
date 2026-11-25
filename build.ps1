@@ -21,9 +21,17 @@ Invoke-Tool "$bt\aapt2.exe" link -I $jar build\res.zip --manifest AndroidManifes
 Invoke-Tool "$jdk\bin\jar.exe" uf build\unsigned.apk -C build classes.dex
 Invoke-Tool "$bt\zipalign.exe" -p -f 4 build\unsigned.apk build\aligned.apk
 
-$ks = "$env:USERPROFILE\.android\debug.keystore"
-if (-not (Test-Path $ks)) {
-    Invoke-Tool "$jdk\bin\keytool.exe" -genkeypair -keystore $ks -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+# Release key: RECUPERAMP33_KEYSTORE = path to the .jks, password in "<path>.pass".
+# Without it, sign with the Android debug key (fine for local builds).
+$ks = $env:RECUPERAMP33_KEYSTORE
+if ($ks) {
+    $pass = "file:$ks.pass"
+} else {
+    $ks = "$env:USERPROFILE\.android\debug.keystore"
+    $pass = 'pass:android'
+    if (-not (Test-Path $ks)) {
+        Invoke-Tool "$jdk\bin\keytool.exe" -genkeypair -keystore $ks -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+    }
 }
-Invoke-Tool "$bt\apksigner.bat" sign --ks $ks --ks-pass pass:android --out RecuperaMp33.apk build\aligned.apk
+Invoke-Tool "$bt\apksigner.bat" sign --ks $ks --ks-pass $pass --out RecuperaMp33.apk build\aligned.apk
 Write-Host "OK: $PSScriptRoot\RecuperaMp33.apk"
