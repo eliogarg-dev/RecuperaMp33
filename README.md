@@ -1,17 +1,17 @@
 # Recupera MP33
 
-Piccola app Android per recuperare i file musicali (`.mp33` e `.mid`) scaricati dai gruppi Facebook che sul telefono "spariscono".
+Piccola app Android per recuperare i file musicali (`.mp33`, `.mp` e `.mid`) scaricati dai gruppi Facebook che sul telefono "spariscono".
 
 ## Il problema
 
-Nei gruppi Facebook i brani MP3 vengono spesso condivisi rinominati in `.mp33`. Sui telefoni **Samsung**, se li scarichi dall'app Facebook, il file non compare in Download: il download parte in una cartella nascosta temporanea (`Download/.!%#@$`) e poi finisce nel **Cestino** di Archivio (My Files).
+Nei gruppi Facebook i brani MP3 vengono spesso condivisi rinominati in `.mp33` o `.mp`. Sui telefoni **Samsung**, se li scarichi dall'app Facebook, il file non compare in Download: il download parte in una cartella nascosta temporanea (`Download/.!%#@$`) e poi finisce nel **Cestino** di Archivio (My Files).
 
 ## Cosa fa l'app
 
 Ogni volta che la apri:
 
-1. cerca i file `.mp33` e `.mid` nel Cestino di Archivio e nella cartella temporanea dei download;
-2. li copia in **Download**, rinominando `.mp33` in `.mp3`;
+1. cerca i file `.mp33`, `.mp` e `.mid` nel Cestino di Archivio e nella cartella temporanea dei download;
+2. li copia in **Download**, rinominando `.mp33` e `.mp` in `.mp3`;
 3. li toglie dal Cestino (i file della cartella temporanea vengono solo copiati, perché potrebbero essere download ancora in corso);
 4. salta i doppioni (per esempio `Brano-1.mp33` se `Brano.mp3` è già in Download);
 5. mostra quanti file ha recuperato e si chiude.

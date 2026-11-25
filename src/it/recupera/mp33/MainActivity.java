@@ -18,8 +18,8 @@ import java.util.List;
 
 /**
  * Downloads started by the Facebook app end up in Download/.!%#@$ (temp folder)
- * and then in the Samsung My Files trash. Copy .mp33/.mid back to Download,
- * renaming .mp33 to .mp3, and remove them from the trash.
+ * and then in the Samsung My Files trash. Copy .mp33/.mp/.mid back to Download,
+ * renaming .mp33/.mp to .mp3, and remove them from the trash.
  */
 public class MainActivity extends Activity {
     static final File ROOT = Environment.getExternalStorageDirectory();
@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         return errors == 0 ? msg : msg + " (" + errors + " errori)";
     }
 
-    /** .mp33/.mid files under dir, shortest name first so "X.mp33" wins over "X-1.mp33". */
+    /** .mp33/.mp/.mid files under dir, shortest name first so "X.mp33" wins over "X-1.mp33". */
     static List<File> find(File dir) {
         List<File> out = new ArrayList<>();
         walk(dir, out);
@@ -102,13 +102,12 @@ public class MainActivity extends Activity {
 
     static boolean wanted(String name) {
         String n = name.toLowerCase();
-        return n.endsWith(".mp33") || n.endsWith(".mid");
+        return n.endsWith(".mp33") || n.endsWith(".mp") || n.endsWith(".mid");
     }
 
     /** Copies src into Download; skips it if the same file (same name or "-N" twin, same size) is already there. */
     static void copy(File src, List<String> copied) throws IOException {
-        String name = src.getName();
-        if (name.toLowerCase().endsWith(".mp33")) name = name.substring(0, name.length() - 5) + ".mp3";
+        String name = src.getName().replaceFirst("(?i)\\.(mp33|mp)$", ".mp3");
 
         File dst = new File(DOWNLOAD, name);
         File twin = new File(DOWNLOAD, name.replaceFirst("-\\d+(\\.\\w+)$", "$1"));
