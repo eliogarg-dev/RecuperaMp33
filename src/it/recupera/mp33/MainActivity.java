@@ -2,14 +2,18 @@ package it.recupera.mp33;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,8 +47,31 @@ public class MainActivity extends Activity {
                     Uri.parse("package:" + getPackageName())));
             return;
         }
-        toast(recover());
+        Uri shared = Intent.ACTION_VIEW.equals(getIntent().getAction()) ? getIntent().getData() : null;
+        toast(shared != null ? save(shared) : recover());
         finish();
+    }
+
+    /** File opened with this app (e.g. from the "Download completed" notification): copy it into Download. */
+    String save(Uri uri) {
+        String name = "brano.mp3";
+        long size = -1;
+        try (Cursor c = getContentResolver().query(uri,
+                new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE}, null, null, null)) {
+            if (c != null && c.moveToFirst()) {
+                if (!c.isNull(0)) name = new File(c.getString(0)).getName();
+                if (!c.isNull(1)) size = c.getLong(1);
+            }
+        }
+        List<String> copied = new ArrayList<>();
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            copy(name, size, in, copied);
+        } catch (IOException | RuntimeException e) {
+            return "Errore: " + e.getMessage();
+        }
+        if (copied.isEmpty()) return "Già presente in Download";
+        MediaScannerConnection.scanFile(getApplicationContext(), copied.toArray(new String[0]), null, null);
+        return "Salvato in Download: " + new File(copied.get(0)).getName();
     }
 
     String recover() {
@@ -107,22 +134,29 @@ public class MainActivity extends Activity {
 
     /** Copies src into Download; skips it if the same file (same name or "-N" twin, same size) is already there. */
     static void copy(File src, List<String> copied) throws IOException {
-        String name = src.getName().replaceFirst("(?i)\\.(mp33|mp)$", ".mp3");
+        try (InputStream in = new FileInputStream(src)) {
+            copy(src.getName(), src.length(), in, copied);
+        }
+    }
+
+    static void copy(String srcName, long size, InputStream in, List<String> copied) throws IOException {
+        String name = srcName.replaceFirst("(?i)\\.(mp33|mp)$", ".mp3");
 
         File dst = new File(DOWNLOAD, name);
         File twin = new File(DOWNLOAD, name.replaceFirst("-\\d+(\\.\\w+)$", "$1"));
-        if (sameSize(dst, src) || sameSize(twin, src)) return;
+        if (sameSize(dst, size) || sameSize(twin, size)) return;
 
         int dot = name.lastIndexOf('.');
         for (int i = 2; dst.exists(); i++) {
-            dst = new File(DOWNLOAD, name.substring(0, dot) + " (" + i + ")" + name.substring(dot));
+            dst = dot > 0 ? new File(DOWNLOAD, name.substring(0, dot) + " (" + i + ")" + name.substring(dot))
+                    : new File(DOWNLOAD, name + " (" + i + ")");
         }
-        Files.copy(src.toPath(), dst.toPath());
+        Files.copy(in, dst.toPath());
         copied.add(dst.getPath());
     }
 
-    static boolean sameSize(File a, File b) {
-        return a.isFile() && a.length() == b.length();
+    static boolean sameSize(File a, long size) {
+        return a.isFile() && a.length() == size;
     }
 
     static void deleteWithEmptyParents(File f) {

@@ -26,6 +26,8 @@ Ogni volta che la apri:
 
 Scarica il brano dal gruppo Facebook, poi apri **Recupera MP33**. Il brano sarà in Download.
 
+Se l'app dice "Nessun file nuovo da recuperare", Facebook ha tenuto il file nella memoria privata dei download, dove nessuna app può leggerlo. In questo caso apri la tendina delle notifiche, tocca la notifica **"Download completato"** del brano e scegli **Recupera MP33**: il brano viene salvato in Download (`.mp33` e `.mp` diventano `.mp3`).
+
 ## Limiti
 
 - Pensata per telefoni **Samsung** con Android 11 o successivo (usa il Cestino di Archivio di Samsung). Provata su un solo telefono.
